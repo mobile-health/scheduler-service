@@ -9,11 +9,4 @@ import (
 func Init(srv *services.Srv) {
 	apiMux := goji.SubMux()
 	srv.Router.Handle(pat.New("/api/v1/*"), apiMux)
-
-	var api = api1{
-		Srv: srv,
-		Mux: apiMux,
-	}
-
-	api.Mux.Handle(pat.Post("/files"), api.DefaultHandler(uploadFile))
 }
