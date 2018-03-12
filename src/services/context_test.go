@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/mobile-health/go-api-boilerplate/src/models"
-	"github.com/mobile-health/go-api-boilerplate/src/stores"
+	"github.com/mobile-health/scheduler-service/src/models"
+	"github.com/mobile-health/scheduler-service/src/stores"
 	"github.com/stretchr/testify/assert"
 	"goji.io"
 )

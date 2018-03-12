@@ -2,7 +2,7 @@ package models
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/mobile-health/go-api-boilerplate/src/utils"
+	"github.com/mobile-health/scheduler-service/src/utils"
 )
 
 type Error struct {

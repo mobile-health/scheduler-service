@@ -4,7 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/mobile-health/go-api-boilerplate/src/models"
+	"github.com/mobile-health/scheduler-service/src/models"
 	"gopkg.in/yaml.v2"
 )
 

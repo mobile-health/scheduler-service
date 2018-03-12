@@ -3,8 +3,8 @@ package services
 import (
 	"testing"
 
-	"github.com/mobile-health/go-api-boilerplate/src/stores"
-	"github.com/mobile-health/go-api-boilerplate/src/utils"
+	"github.com/mobile-health/scheduler-service/src/stores"
+	"github.com/mobile-health/scheduler-service/src/utils"
 	"github.com/stretchr/testify/assert"
 	"goji.io"
 )

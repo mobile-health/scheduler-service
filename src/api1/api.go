@@ -6,7 +6,7 @@ import (
 
 	"goji.io"
 
-	"github.com/mobile-health/go-api-boilerplate/src/services"
+	"github.com/mobile-health/scheduler-service/src/services"
 )
 
 type api1 struct {

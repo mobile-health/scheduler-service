@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/mobile-health/go-api-boilerplate/src/models"
+	"github.com/mobile-health/scheduler-service/src/models"
 )
 
 const (

@@ -1,7 +1,7 @@
 package api1
 
 import (
-	"github.com/mobile-health/go-api-boilerplate/src/services"
+	"github.com/mobile-health/scheduler-service/src/services"
 	goji "goji.io"
 	"goji.io/pat"
 )

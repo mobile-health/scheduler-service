@@ -2,7 +2,7 @@
 
 
 build:
-	go build -o go_api_boilerplate github.com/mobile-health/go-api-boilerplate/src
+	go build -o scheduler github.com/mobile-health/scheduler-service/src
 get_realize:
 	go get github.com/tockins/realize
 run: 

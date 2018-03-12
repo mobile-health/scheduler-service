@@ -3,11 +3,11 @@ package main
 import (
 	"flag"
 
-	"github.com/mobile-health/go-api-boilerplate/src/api1"
-	"github.com/mobile-health/go-api-boilerplate/src/config"
-	"github.com/mobile-health/go-api-boilerplate/src/services"
-	"github.com/mobile-health/go-api-boilerplate/src/stores"
-	"github.com/mobile-health/go-api-boilerplate/src/utils"
+	"github.com/mobile-health/scheduler-service/src/api1"
+	"github.com/mobile-health/scheduler-service/src/config"
+	"github.com/mobile-health/scheduler-service/src/services"
+	"github.com/mobile-health/scheduler-service/src/stores"
+	"github.com/mobile-health/scheduler-service/src/utils"
 	"goji.io"
 )
 

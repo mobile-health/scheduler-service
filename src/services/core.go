@@ -2,8 +2,8 @@ package services
 
 import (
 	"github.com/fvbock/endless"
-	"github.com/mobile-health/go-api-boilerplate/src/config"
-	"github.com/mobile-health/go-api-boilerplate/src/stores"
+	"github.com/mobile-health/scheduler-service/src/config"
+	"github.com/mobile-health/scheduler-service/src/stores"
 	goji "goji.io"
 )
 
