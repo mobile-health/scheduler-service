@@ -6,6 +6,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/mobile-health/scheduler-service/src/models"
+	"github.com/mobile-health/scheduler-service/src/utils"
 )
 
 const (
@@ -13,7 +14,7 @@ const (
 )
 
 type RenderFunc func(httpCode int, value interface{}) error
-type HandlerFunc func(c *Context) RenderFunc
+type HandlerFunc func(c *Context) utils.Render
 
 type Context struct {
 	Srv          *Srv
@@ -34,17 +35,13 @@ func NewContext(w http.ResponseWriter, r *http.Request, srv *Srv) *Context {
 	}
 }
 
-func (c *Context) JSON(statusCode int, value interface{}) RenderFunc {
-	c.ResponseCode = statusCode
-	c.ResponseData = value
-	return c.RenderJSON
+func (c *Context) JSON(statusCode int, value interface{}) utils.Render {
+	return utils.NewJsonRender(c.Writer, statusCode, value)
 }
 
-func (c *Context) Error(apperr *models.Error) RenderFunc {
+func (c *Context) Error(apperr *models.Error) utils.Render {
 	apperr.RequestID = c.RequestID
-	c.ResponseCode = apperr.StatusCode
-	c.ResponseData = apperr
-	return c.RenderJSON
+	return utils.NewJsonRender(c.Writer, apperr.StatusCode, models.NewJsonResponse(apperr, nil))
 }
 
 func (c *Context) Log(level logrus.Level, message string) {

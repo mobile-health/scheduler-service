@@ -3,12 +3,33 @@ package config
 import (
 	"io/ioutil"
 	"os"
+	"time"
 
-	"github.com/mobile-health/scheduler-service/src/models"
 	"gopkg.in/yaml.v2"
 )
 
-var config *models.Config
+type ServerSettings struct {
+	ListenAddress string `yaml:"listen_address"`
+}
+
+type AuthSettings struct {
+	ApiToken string `yaml:"api_token"`
+	ApiLogin string `yaml:"api_login"`
+}
+
+type DatabaseSettings struct {
+	MgoDsn         string        `yaml:"mgo_dsn"`
+	Retries        int           `yaml:"retries"`
+	ConnectTimeout time.Duration `yaml:"connect_timeout"`
+}
+
+type Config struct {
+	Server   ServerSettings   `yaml:"server_settings"`
+	Database DatabaseSettings `yaml:"database_settings"`
+	Auth     AuthSettings     `yaml:"auth_settings"`
+}
+
+var defaultConfig *Config
 
 func Load(yamlPath string) {
 	configFile, err := os.Open(yamlPath)
@@ -21,12 +42,16 @@ func Load(yamlPath string) {
 		panic(err)
 	}
 
-	config = &models.Config{}
-	if err := yaml.Unmarshal(data, config); err != nil {
+	defaultConfig = &Config{}
+	if err := yaml.Unmarshal(data, defaultConfig); err != nil {
 		panic(err)
 	}
 }
 
-func Config() models.Config {
-	return *config
+func SetConfig(config *Config) {
+	defaultConfig = config
+}
+
+func GetConfig() Config {
+	return *defaultConfig
 }
