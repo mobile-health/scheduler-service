@@ -1,6 +1,54 @@
 [
     {
+        "id": "api.unauthorized.app_error",
+        "translation":"401 Unauthorized Error"
+    },
+    {
         "id": "unexpected.app_error",
         "translation":"An unexpected error has occurred. {{ .Message }}"
+    },
+    {
+        "id": "model.error.validation.app_error",
+        "translation":"Data validation failed."
+    },
+    {
+        "id": "model.error.validation.required.app_error",
+        "translation": "This field is required"
+    },
+    {
+        "id": "model.error.validation.invalid.app_error",
+        "translation": "This field is invalid. {{.Message}}"
+    },
+    {
+        "id": "stores.job.insert.app_err",
+        "translation": "Failed to save the job"
+    },
+    {
+        "id": "stores.job.update.app_err",
+        "translation": "Failed to update the job"
+    },
+    {
+        "id": "stores.job.find.app_err",
+        "translation": "Failed to find jobs"
+    },
+    {
+        "id": "stores.job.get.app_err",
+        "translation": "The scheduled job does not exist"
+    },
+    {
+        "id": "stores.scheduled_job_store.insert.app_err",
+        "translation": "Failed to save the scheduled job"
+    },
+    {
+        "id": "stores.scheduled_job_store.update.app_err",
+        "translation": "Failed to update the scheduled job"
+    },
+    {
+        "id": "stores.scheduled_job_store.find.app_err",
+        "translation": "Failed to find scheduled jobs"
+    },
+    {
+        "id": "stores.scheduled_job_store.get.app_err",
+        "translation": "The scheduled job does not exist"
     }
 ]

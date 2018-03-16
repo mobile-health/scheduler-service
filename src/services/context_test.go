@@ -28,7 +28,7 @@ func TestContextJSON(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
 	c := NewContext(w, r, NewServer(goji.NewMux(), stores.NewStore()))
 
-	data := models.FileInfo{
+	data := models.Job{
 		ID: models.NewID(),
 	}
 	renderFunc := c.JSON(200, data)
