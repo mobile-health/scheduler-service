@@ -52,7 +52,7 @@ func (scheduledJob *PersistentScheduledJob) onSucceeded() {
 func (scheduledJob *PersistentScheduledJob) Run() (err error) {
 	scheduledJob.onProcessing()
 
-	if scheduledJob.ParentJob.IsAsync {
+	if !scheduledJob.ParentJob.IsAsync {
 		defer func(err error) {
 			if err != nil {
 				scheduledJob.onFailed(err)
@@ -75,7 +75,7 @@ func (scheduledJob *PersistentScheduledJob) Run() (err error) {
 		return errors.New(res.Status)
 	}
 
-	if scheduledJob.ParentJob.IsAsync {
+	if !scheduledJob.ParentJob.IsAsync {
 		scheduledJob.onSucceeded()
 	}
 
