@@ -91,6 +91,7 @@ func NewPersistentScheduledJob(store stores.Store, job *models.Job) *PersistentS
 	persistentJob := &PersistentScheduledJob{
 		ScheduledJob: &scheduledJob,
 		Store:        store,
+		ParentJob:    job,
 	}
 	return persistentJob
 }

@@ -10,7 +10,7 @@ func (c *Context) CreateJob(job *models.Job) *models.Error {
 		return apperr
 	}
 
-	c.Srv.Scheduler.Add(NewPersistentJob(c.Srv.Store, job))
+	c.Srv.Scheduler.Add(NewPersistentJob(c.Srv.Store, job.Clone()))
 
 	return nil
 }

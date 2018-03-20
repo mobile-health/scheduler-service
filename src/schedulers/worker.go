@@ -5,8 +5,11 @@ import (
 )
 
 const (
+	// DefaultMaxWorker the default number of worker
 	DefaultMaxWorker = 1024
-	DefaultMaxQueue  = 1024
+
+	// DefaultMaxQueue the default number of worker
+	DefaultMaxQueue = 1024
 )
 
 type ScheduledJobChannel chan ScheduledJob
@@ -48,11 +51,6 @@ func (w *Worker) processing() {
 			return
 		}
 	}
-}
-
-func (w *Worker) Enqueue(job ScheduledJob) {
-
-	w.jobChannel <- job
 }
 
 func (w *Worker) Stop() {

@@ -1,6 +1,8 @@
 package stores
 
 import (
+	"fmt"
+
 	"github.com/canhlinh/log4go"
 	"github.com/mobile-health/scheduler-service/src/models"
 	"gopkg.in/mgo.v2"
@@ -74,4 +76,14 @@ func (m *MgoJobStore) FindNotDoneYet() (models.Jobs, *models.Error) {
 	}
 
 	return jobs, nil
+}
+
+func (m *MgoJobStore) DeleteAll(prefix string) *models.Error {
+	regex := fmt.Sprintf(`%s.*`, prefix)
+
+	if _, err := m.C().RemoveAll(bson.M{"name": bson.RegEx{Pattern: regex}}); err != nil {
+		return models.NewError("stores.job.delete_all.app_err", nil, 500)
+	}
+
+	return nil
 }

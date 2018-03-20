@@ -66,3 +66,13 @@ func (m *MgoScheduledJobStore) FindByJobID(jobID string) (models.ScheduledJobs, 
 
 	return scheduledJobs, nil
 }
+
+func (m *MgoScheduledJobStore) FindProcessing() (models.ScheduledJobs, *models.Error) {
+	var scheduledJobs = make(models.ScheduledJobs, 0)
+
+	if err := m.C().Find(bson.M{"status": models.JobProcessing}).All(&scheduledJobs); err != nil {
+		return nil, models.NewError("stores.scheduled_job_store.find.app_err", nil, 500)
+	}
+
+	return scheduledJobs, nil
+}

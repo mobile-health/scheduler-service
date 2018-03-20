@@ -16,6 +16,7 @@ type JobStore interface {
 	Update(job *models.Job) *models.Error
 	Get(jobID string) (*models.Job, *models.Error)
 	FindNotDoneYet() (models.Jobs, *models.Error)
+	DeleteAll(prefix string) *models.Error
 }
 
 type ScheduledJobStore interface {
@@ -24,4 +25,5 @@ type ScheduledJobStore interface {
 	Update(scheduledJob *models.ScheduledJob) *models.Error
 	Get(scheduledJobID string) (*models.ScheduledJob, *models.Error)
 	FindByJobID(jobID string) (models.ScheduledJobs, *models.Error)
+	FindProcessing() (models.ScheduledJobs, *models.Error)
 }
