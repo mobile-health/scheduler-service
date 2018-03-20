@@ -4,6 +4,8 @@ import (
 	"sort"
 	"sync"
 	"time"
+
+	"github.com/canhlinh/log4go"
 )
 
 type WorkerPool chan *Worker
@@ -15,6 +17,7 @@ type Scheduler struct {
 	isRuning  bool
 
 	addJob     JobChannel
+	disableJob JobChannel
 	processJob ScheduledJobChannel
 	stop       StopChannel
 	mutex      *sync.Mutex
@@ -24,33 +27,39 @@ func Now() time.Time {
 	return time.Now().UTC()
 }
 
-func NewScheduler(maxWorker int) *Scheduler {
+func New() *Scheduler {
+	return NewScheduler(DefaultMaxWorker, DefaultMaxQueue)
+}
+
+func NewScheduler(maxWorker, maxQueue int) *Scheduler {
+	if maxWorker <= 0 {
+		panic("Must set at least one worker")
+	}
 
 	r := &Scheduler{
 		maxWorker:  maxWorker,
-		pool:       make(WorkerPool, DefaultMaxQueue),
-		addJob:     make(JobChannel, DefaultMaxQueue),
-		processJob: make(ScheduledJobChannel, DefaultMaxQueue),
+		pool:       make(WorkerPool),
+		addJob:     make(JobChannel, maxQueue),
+		processJob: make(ScheduledJobChannel, maxQueue),
 		stop:       make(StopChannel),
 		mutex:      &sync.Mutex{},
-	}
-
-	for i := 0; i < maxWorker; i++ {
-		worker := NewWorker(r.pool)
-		worker.Start()
 	}
 
 	return r
 }
 
 func (n *Scheduler) startScheduler() {
+	for i := 0; i < n.maxWorker; i++ {
+		worker := NewWorker(n.pool)
+		worker.Start()
+	}
 
 	go func() {
 		for {
 			select {
 			case job := <-n.processJob:
 				w := <-n.pool
-				w.Enqueue(job)
+				w.jobChannel <- job
 			case <-n.stop:
 				for i := 0; i < n.maxWorker; i++ {
 					worker := <-n.pool
@@ -64,44 +73,45 @@ func (n *Scheduler) startScheduler() {
 
 func (n *Scheduler) Stop() {
 
-	if !n.GetRuningState() {
+	if !n.IsRuning() {
 		return
 	}
 
-	n.SetRuningState(false)
+	n.mutex.Lock()
+	defer n.mutex.Unlock()
+	n.isRuning = false
+
 	n.stop <- struct{}{}
 	n.stop <- struct{}{}
 }
 
-func (n *Scheduler) GetRuningState() bool {
+func (n *Scheduler) IsRuning() bool {
 	n.mutex.Lock()
 	defer n.mutex.Unlock()
 	return n.isRuning
 }
 
-func (n *Scheduler) SetRuningState(b bool) {
-	n.mutex.Lock()
-	n.isRuning = b
-	n.mutex.Unlock()
-}
-
 func (n *Scheduler) Start() *Scheduler {
-
-	if n.GetRuningState() {
+	if n.IsRuning() {
 		return n
 	}
-	n.SetRuningState(true)
+
+	n.mutex.Lock()
+	defer n.mutex.Unlock()
+	n.isRuning = true
+
 	go n.run()
 	return n
 }
 
 func (n *Scheduler) run() {
+	log4go.Info("Start scheduler")
 
 	n.startScheduler()
 	now := Now()
 
 	for _, job := range n.jobs {
-		job.Schedule(now, job.Args())
+		job.Schedule(now)
 	}
 
 	for {
@@ -109,32 +119,33 @@ func (n *Scheduler) run() {
 		sort.Sort(n.jobs)
 
 		var timer *time.Timer
-		if len(n.jobs) == 0 || n.jobs[0].ScheduledJob() == nil {
-			timer = time.NewTimer(1 * time.Hour)
+		if len(n.jobs) == 0 || !n.jobs[0].HasScheduledJob() {
+			timer = time.NewTimer(24 * time.Hour)
 		} else {
 			timer = time.NewTimer(n.jobs[0].ScheduledJob().ScheduledAt().Sub(now))
 		}
 
 		for {
 			select {
-			case now := <-timer.C:
+			case now = <-timer.C:
 
 				for _, job := range n.jobs {
 					if job.ScheduledJob().ScheduledAt().After(now) || job.ScheduledJob().ScheduledAt().IsZero() {
 						break
 					}
+
 					scheduledJob := job.ScheduledJob()
 					scheduledJob.Save()
-
 					n.processJob <- scheduledJob
-					job.Schedule(now, job.Args())
+
+					job.Schedule(now)
 				}
 
 			case newjob := <-n.addJob:
 				timer.Stop()
-				newjob.Schedule(Now(), newjob.Args())
+				now = Now()
 
-				if newjob.ScheduledJob() == nil {
+				if err := newjob.Schedule(now); err == nil {
 					n.jobs = append(n.jobs, newjob)
 				}
 
@@ -147,13 +158,20 @@ func (n *Scheduler) run() {
 	}
 }
 
-func (n *Scheduler) Add(job Job) {
-	if !n.GetRuningState() {
-		job.Schedule(Now(), job.Args())
-		if job.ScheduledJob() == nil {
-			n.jobs = append(n.jobs, job)
-		}
+func (n *Scheduler) PreLoadExistingJob(jobs Jobs) {
+	n.jobs = jobs
+}
+
+func (n *Scheduler) ProcessScheduledJob(scheduledJob ScheduledJob) {
+	n.processJob <- scheduledJob
+}
+
+func (n *Scheduler) Add(newjob Job) {
+	if n.IsRuning() {
+		n.addJob <- newjob
 	} else {
-		n.addJob <- job
+		if err := newjob.Schedule(Now()); err == nil {
+			n.jobs = append(n.jobs, newjob)
+		}
 	}
 }

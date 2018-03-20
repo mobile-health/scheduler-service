@@ -10,10 +10,12 @@ type ScheduledJob interface {
 	Save()
 }
 
+type ScheduledJobs []ScheduledJob
+
 type Job interface {
+	HasScheduledJob() bool
 	ScheduledJob() ScheduledJob
-	Schedule(t time.Time, args interface{}) error
-	Args() interface{}
+	Schedule(t time.Time) error
 }
 
 type Jobs []Job
@@ -31,4 +33,16 @@ func (jobs Jobs) Less(i, j int) bool {
 	}
 
 	return jobs[j].ScheduledJob().ScheduledAt().After(jobs[i].ScheduledJob().ScheduledAt())
+}
+
+func (jobs *Jobs) Remove(index int) {
+	v := *jobs
+
+	if index == 0 && len(v) == 1 {
+		*jobs = Jobs{}
+	} else if index == len(v)-1 {
+		*jobs = v[:index]
+	} else {
+		*jobs = append(v[:index], v[index+1:]...)
+	}
 }

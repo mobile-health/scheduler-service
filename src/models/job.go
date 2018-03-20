@@ -85,3 +85,8 @@ func NewJobFromBody(body io.ReadCloser) *Job {
 	json.NewDecoder(body).Decode(&job)
 	return &job
 }
+
+func (job *Job) Clone() *Job {
+	clone := *job
+	return &clone
+}
