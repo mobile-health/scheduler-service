@@ -22,7 +22,7 @@ type ScheduledJob struct {
 	ScheduledAt  time.Time  `json:"scheduled_at" bson:"scheduled_at"`
 	RanAt        *time.Time `json:"ran_at" bson:"ran_at"`
 	Error        error      `json:"error" bson:"error"`
-	Duration     int        `json:"duration" bson:"duration"`
+	Duration     float64    `json:"duration" bson:"duration"`
 	NumOfRetries int        `json:"num_of_retries" bson:"num_of_retries"`
 	Status       JobStatus  `json:"status" bson:"status"`
 }
