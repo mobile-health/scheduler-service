@@ -89,7 +89,11 @@ func (scheduledJob *PersistentScheduledJob) Run() (err error) {
 		}(err)
 	}
 
-	req, _ := http.NewRequest(scheduledJob.ParentJob.Args.Method, scheduledJob.ParentJob.Args.URL, strings.NewReader(scheduledJob.ParentJob.Args.Body))
+	req, err := http.NewRequest(scheduledJob.ParentJob.Args.Method, scheduledJob.ParentJob.Args.URL, strings.NewReader(scheduledJob.ParentJob.Args.Body))
+	if err != nil {
+		return err
+	}
+
 	for value, key := range scheduledJob.ParentJob.Args.Headers {
 		req.Header.Add(value, key)
 	}

@@ -4,10 +4,23 @@ import (
 	"bytes"
 	"crypto/rand"
 	"encoding/json"
+	"net/http"
 	"time"
 
 	"github.com/oklog/ulid"
 )
+
+var HttpMethods = map[string]struct{}{
+	http.MethodGet:     struct{}{},
+	http.MethodHead:    struct{}{},
+	http.MethodPost:    struct{}{},
+	http.MethodPut:     struct{}{},
+	http.MethodPatch:   struct{}{},
+	http.MethodDelete:  struct{}{},
+	http.MethodConnect: struct{}{},
+	http.MethodOptions: struct{}{},
+	http.MethodTrace:   struct{}{},
+}
 
 func Now() time.Time {
 	return time.Now().UTC().Truncate(time.Second)
