@@ -11,6 +11,11 @@ import (
 	"github.com/mobile-health/scheduler-service/src/stores"
 )
 
+func Now() *time.Time {
+	u := time.Now().UTC()
+	return &u
+}
+
 type PersistentScheduledJob struct {
 	stores.Store
 	*models.ScheduledJob
@@ -28,28 +33,52 @@ func (scheduledJob *PersistentScheduledJob) Save() {
 }
 
 func (scheduledJob *PersistentScheduledJob) onProcessing() {
+	log4go.Info("The scheduled job %s is in processing", scheduledJob.ID)
+
 	scheduledJob.Status = models.JobProcessing
+	scheduledJob.RanAt = Now()
 	if apperr := scheduledJob.Store.ScheduledJob().Update(scheduledJob.ScheduledJob); apperr != nil {
+		log4go.Error(apperr.Message)
+	}
+
+	scheduledJob.ParentJob.JobStats.LastRanAt = Now()
+	if apperr := scheduledJob.Store.Job().Update(scheduledJob.ParentJob); apperr != nil {
 		log4go.Error(apperr.Message)
 	}
 }
 
 func (scheduledJob *PersistentScheduledJob) onFailed(err error) {
+	log4go.Info("The scheduled job %s failed", scheduledJob.ID)
+
 	scheduledJob.Status = models.JobFailed
 	scheduledJob.Error = err
 	if apperr := scheduledJob.Store.ScheduledJob().Update(scheduledJob.ScheduledJob); apperr != nil {
 		log4go.Error(apperr.Message)
 	}
+
+	scheduledJob.ParentJob.JobStats.ErrorCount++
+	scheduledJob.ParentJob.JobStats.LastError = err.Error()
+	scheduledJob.ParentJob.JobStats.LastErrorAt = Now()
+	if apperr := scheduledJob.Store.Job().Update(scheduledJob.ParentJob); apperr != nil {
+		log4go.Error(apperr.Message)
+	}
 }
 
 func (scheduledJob *PersistentScheduledJob) onSucceeded() {
+	log4go.Info("The scheduled job %s has been succeeded", scheduledJob.ID)
+
 	scheduledJob.Status = models.JobSucceeded
+	scheduledJob.ParentJob.JobStats.SuccessCount++
+	scheduledJob.ParentJob.JobStats.LastSuccededAt = Now()
+
 	if apperr := scheduledJob.Store.ScheduledJob().Update(scheduledJob.ScheduledJob); apperr != nil {
 		log4go.Error(apperr.Message)
 	}
 }
 
 func (scheduledJob *PersistentScheduledJob) Run() (err error) {
+	log4go.Info("Process scheduled job %s", scheduledJob.ID)
+
 	scheduledJob.onProcessing()
 
 	if !scheduledJob.ParentJob.IsAsync {
