@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mobile-health/scheduler-service/src/schedulers"
+
 	"github.com/canhlinh/log4go"
 	"github.com/mobile-health/scheduler-service/src/models"
 	"github.com/mobile-health/scheduler-service/src/stores"
@@ -49,11 +51,12 @@ func (scheduledJob *PersistentScheduledJob) onProcessing() {
 	scheduledJob.ParentJob.Save()
 }
 
-func (scheduledJob *PersistentScheduledJob) onFailed(err error) {
+func (scheduledJob *PersistentScheduledJob) onFailed(err error, duration float64) {
 	log4go.Info("The scheduled job %s failed", scheduledJob.ID)
 
 	scheduledJob.Status = models.JobFailed
 	scheduledJob.Error = err
+	scheduledJob.Duration = duration
 	scheduledJob.Save()
 
 	scheduledJob.ParentJob.JobStats.ErrorCount++
@@ -62,9 +65,10 @@ func (scheduledJob *PersistentScheduledJob) onFailed(err error) {
 	scheduledJob.ParentJob.Save()
 }
 
-func (scheduledJob *PersistentScheduledJob) onSucceeded() {
+func (scheduledJob *PersistentScheduledJob) onSucceeded(duration float64) {
 	log4go.Info("The scheduled job %s has been succeeded", scheduledJob.ID)
 
+	scheduledJob.Duration = duration
 	scheduledJob.Status = models.JobSucceeded
 	scheduledJob.Save()
 
@@ -77,11 +81,12 @@ func (scheduledJob *PersistentScheduledJob) Run() error {
 	log4go.Info("Process scheduled job %s", scheduledJob.ID)
 
 	scheduledJob.onProcessing()
+	now := schedulers.Now()
 
 	req, err := http.NewRequest(scheduledJob.ParentJob.Args.Method, scheduledJob.ParentJob.Args.URL, strings.NewReader(scheduledJob.ParentJob.Args.Body))
 	if err != nil {
 		if !scheduledJob.ParentJob.IsAsync {
-			scheduledJob.onFailed(err)
+			scheduledJob.onFailed(err, schedulers.Now().Sub(now).Seconds())
 		}
 		return err
 	}
@@ -94,7 +99,7 @@ func (scheduledJob *PersistentScheduledJob) Run() error {
 	res, err = http.DefaultClient.Do(req)
 	if err != nil {
 		if !scheduledJob.ParentJob.IsAsync {
-			scheduledJob.onFailed(err)
+			scheduledJob.onFailed(err, schedulers.Now().Sub(now).Seconds())
 		}
 		return err
 	}
@@ -102,13 +107,13 @@ func (scheduledJob *PersistentScheduledJob) Run() error {
 	if res.StatusCode <= 299 {
 		err = errors.New(res.Status)
 		if !scheduledJob.ParentJob.IsAsync {
-			scheduledJob.onFailed(err)
+			scheduledJob.onFailed(err, schedulers.Now().Sub(now).Seconds())
 		}
 		return err
 	}
 
 	if !scheduledJob.ParentJob.IsAsync {
-		scheduledJob.onSucceeded()
+		scheduledJob.onSucceeded(schedulers.Now().Sub(now).Seconds())
 	}
 
 	return nil
