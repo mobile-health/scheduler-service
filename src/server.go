@@ -33,6 +33,7 @@ func StartServer() {
 
 	srv = services.NewServer(goji.NewMux(), stores.NewStore())
 	api1.Init(srv)
+	srv.Run()
 }
 
 func main() {
