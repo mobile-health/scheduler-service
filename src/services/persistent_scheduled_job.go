@@ -29,7 +29,7 @@ func (scheduledJob *PersistentScheduledJob) ScheduledAt() time.Time {
 }
 
 func (scheduledJob *PersistentScheduledJob) Save() {
-	if len(scheduledJob.ScheduledJob.ID) != 26 {
+	if len(scheduledJob.ID) == 0 {
 		if apperr := scheduledJob.Store.ScheduledJob().Insert(scheduledJob.ScheduledJob); apperr != nil {
 			log4go.Error(apperr.Message)
 		}
@@ -55,7 +55,7 @@ func (scheduledJob *PersistentScheduledJob) onFailed(err error, duration float64
 	log4go.Info("The scheduled job %s failed", scheduledJob.ID)
 
 	scheduledJob.Status = models.JobFailed
-	scheduledJob.Error = err
+	scheduledJob.Error = err.Error()
 	scheduledJob.Duration = duration
 	scheduledJob.Save()
 

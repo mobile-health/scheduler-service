@@ -37,7 +37,7 @@ CONNECT:
 		log4go.Crash(err)
 	}
 
-	mgoSession.SetPoolLimit(1024)
+	mgoSession.SetPoolLimit(200)
 	mgoSession.SetMode(mgo.Strong, true)
 	mgoSession.SetSafe(&mgo.Safe{})
 
