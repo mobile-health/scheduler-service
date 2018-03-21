@@ -21,7 +21,6 @@ type Client struct {
 func (c *Client) perform(r *http.Request) *httptest.ResponseRecorder {
 	w := httptest.NewRecorder()
 	c.Mux.ServeHTTP(w, r)
-	r.Body.Close()
 	return w
 }
 
@@ -36,7 +35,7 @@ func (c *Client) DoPost(endpoint string, body io.Reader) (models.MapInterface, e
 	apiURL := c.BaseApiURL + endpoint
 
 	resp := c.do(http.MethodPost, apiURL, body)
-	if resp.Code != 201 {
+	if resp.Code != 201 && resp.Code != 200 {
 		return nil, errors.New(resp.Body.String())
 	}
 

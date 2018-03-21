@@ -4,6 +4,10 @@
         "translation":"401 Unauthorized Error"
     },
     {
+        "id": "api.job.disable.job_disabled.app_err",
+        "translation": "The job has already been disabled"
+    },
+    {
         "id": "unexpected.app_error",
         "translation":"An unexpected error has occurred. {{ .Message }}"
     },
@@ -50,5 +54,9 @@
     {
         "id": "stores.scheduled_job_store.get.app_err",
         "translation": "The scheduled job does not exist"
+    },
+    {
+        "id": "services.scheduler.disable.app_err",
+        "translation": "Can not disable the job, got error : {{ .Message }}"
     }
 ]

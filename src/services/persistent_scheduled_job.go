@@ -19,7 +19,7 @@ func Now() *time.Time {
 type PersistentScheduledJob struct {
 	stores.Store
 	*models.ScheduledJob
-	ParentJob *models.Job
+	ParentJob *PersistentJob
 }
 
 func (scheduledJob *PersistentScheduledJob) ScheduledAt() time.Time {
@@ -27,8 +27,14 @@ func (scheduledJob *PersistentScheduledJob) ScheduledAt() time.Time {
 }
 
 func (scheduledJob *PersistentScheduledJob) Save() {
-	if apperr := scheduledJob.Store.ScheduledJob().Insert(scheduledJob.ScheduledJob); apperr != nil {
-		log4go.Error(apperr.Message)
+	if len(scheduledJob.ScheduledJob.ID) != 26 {
+		if apperr := scheduledJob.Store.ScheduledJob().Insert(scheduledJob.ScheduledJob); apperr != nil {
+			log4go.Error(apperr.Message)
+		}
+	} else {
+		if apperr := scheduledJob.Store.ScheduledJob().Update(scheduledJob.ScheduledJob); apperr != nil {
+			log4go.Error(apperr.Message)
+		}
 	}
 }
 
@@ -37,14 +43,10 @@ func (scheduledJob *PersistentScheduledJob) onProcessing() {
 
 	scheduledJob.Status = models.JobProcessing
 	scheduledJob.RanAt = Now()
-	if apperr := scheduledJob.Store.ScheduledJob().Update(scheduledJob.ScheduledJob); apperr != nil {
-		log4go.Error(apperr.Message)
-	}
+	scheduledJob.Save()
 
 	scheduledJob.ParentJob.JobStats.LastRanAt = Now()
-	if apperr := scheduledJob.Store.Job().Update(scheduledJob.ParentJob); apperr != nil {
-		log4go.Error(apperr.Message)
-	}
+	scheduledJob.ParentJob.Save()
 }
 
 func (scheduledJob *PersistentScheduledJob) onFailed(err error) {
@@ -52,45 +54,35 @@ func (scheduledJob *PersistentScheduledJob) onFailed(err error) {
 
 	scheduledJob.Status = models.JobFailed
 	scheduledJob.Error = err
-	if apperr := scheduledJob.Store.ScheduledJob().Update(scheduledJob.ScheduledJob); apperr != nil {
-		log4go.Error(apperr.Message)
-	}
+	scheduledJob.Save()
 
 	scheduledJob.ParentJob.JobStats.ErrorCount++
 	scheduledJob.ParentJob.JobStats.LastError = err.Error()
 	scheduledJob.ParentJob.JobStats.LastErrorAt = Now()
-	if apperr := scheduledJob.Store.Job().Update(scheduledJob.ParentJob); apperr != nil {
-		log4go.Error(apperr.Message)
-	}
+	scheduledJob.ParentJob.Save()
 }
 
 func (scheduledJob *PersistentScheduledJob) onSucceeded() {
 	log4go.Info("The scheduled job %s has been succeeded", scheduledJob.ID)
 
 	scheduledJob.Status = models.JobSucceeded
+	scheduledJob.Save()
+
 	scheduledJob.ParentJob.JobStats.SuccessCount++
 	scheduledJob.ParentJob.JobStats.LastSuccededAt = Now()
-
-	if apperr := scheduledJob.Store.ScheduledJob().Update(scheduledJob.ScheduledJob); apperr != nil {
-		log4go.Error(apperr.Message)
-	}
+	scheduledJob.ParentJob.Save()
 }
 
-func (scheduledJob *PersistentScheduledJob) Run() (err error) {
+func (scheduledJob *PersistentScheduledJob) Run() error {
 	log4go.Info("Process scheduled job %s", scheduledJob.ID)
 
 	scheduledJob.onProcessing()
 
-	if !scheduledJob.ParentJob.IsAsync {
-		defer func(err error) {
-			if err != nil {
-				scheduledJob.onFailed(err)
-			}
-		}(err)
-	}
-
 	req, err := http.NewRequest(scheduledJob.ParentJob.Args.Method, scheduledJob.ParentJob.Args.URL, strings.NewReader(scheduledJob.ParentJob.Args.Body))
 	if err != nil {
+		if !scheduledJob.ParentJob.IsAsync {
+			scheduledJob.onFailed(err)
+		}
 		return err
 	}
 
@@ -101,30 +93,37 @@ func (scheduledJob *PersistentScheduledJob) Run() (err error) {
 	var res *http.Response
 	res, err = http.DefaultClient.Do(req)
 	if err != nil {
+		if !scheduledJob.ParentJob.IsAsync {
+			scheduledJob.onFailed(err)
+		}
 		return err
 	}
 
-	if res.StatusCode != 200 {
-		return errors.New(res.Status)
+	if res.StatusCode <= 299 {
+		err = errors.New(res.Status)
+		if !scheduledJob.ParentJob.IsAsync {
+			scheduledJob.onFailed(err)
+		}
+		return err
 	}
 
 	if !scheduledJob.ParentJob.IsAsync {
 		scheduledJob.onSucceeded()
 	}
 
-	return err
+	return nil
 }
 
-func NewPersistentScheduledJob(store stores.Store, job *models.Job) *PersistentScheduledJob {
+func NewPersistentScheduledJob(store stores.Store, parentJob *PersistentJob) *PersistentScheduledJob {
 	scheduledJob := models.ScheduledJob{
-		JobID:       job.ID,
-		ScheduledAt: job.NextRunAt,
+		JobID:       parentJob.ID,
+		ScheduledAt: parentJob.NextRunAt,
 		Status:      models.JobPending,
 	}
 	persistentJob := &PersistentScheduledJob{
 		ScheduledJob: &scheduledJob,
 		Store:        store,
-		ParentJob:    job,
+		ParentJob:    parentJob,
 	}
 	return persistentJob
 }

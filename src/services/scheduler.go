@@ -18,3 +18,13 @@ func (c *Context) CreateJob(job *models.Job) *models.Error {
 func (c *Context) ReportJob(jobID string, isSuccess bool, err error) *models.Error {
 	return nil
 }
+
+func (c *Context) DisableJob(jobID string) (*models.Job, *models.Error) {
+
+	job, err := c.Srv.Scheduler.DisableJob(jobID)
+	if err != nil {
+		return nil, models.NewError("services.scheduler.disable.app_err", map[string]interface{}{"Message": err.Error()}, 500)
+	}
+
+	return job.(*PersistentJob).Job, nil
+}
