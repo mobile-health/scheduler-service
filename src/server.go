@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 
+	"github.com/canhlinh/log4go"
+
 	"github.com/mobile-health/scheduler-service/src/api1"
 	"github.com/mobile-health/scheduler-service/src/config"
 	"github.com/mobile-health/scheduler-service/src/services"
@@ -24,13 +26,13 @@ func Init() {
 
 	config.Load("./conf/config.yaml")
 	utils.Init("./i18n")
-
-	srv = services.NewServer(goji.NewMux(), stores.NewStore())
-	api1.Init(srv)
 }
 
 func StartServer() {
-	srv.Run()
+	log4go.Info("Start server, listen at %s", config.GetConfig().Server.ListenAddress)
+
+	srv = services.NewServer(goji.NewMux(), stores.NewStore())
+	api1.Init(srv)
 }
 
 func main() {
