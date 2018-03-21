@@ -1,6 +1,7 @@
 package stores
 
 import (
+	"github.com/canhlinh/log4go"
 	"github.com/mobile-health/scheduler-service/src/models"
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -27,6 +28,7 @@ func (m *MgoScheduledJobStore) Insert(scheduledJob *models.ScheduledJob) *models
 	}
 
 	if err := m.C().Insert(scheduledJob); err != nil {
+		log4go.Error(err)
 		return models.NewError("stores.scheduled_job_store.insert.app_err", nil, 500)
 	}
 
@@ -34,13 +36,14 @@ func (m *MgoScheduledJobStore) Insert(scheduledJob *models.ScheduledJob) *models
 }
 
 func (m *MgoScheduledJobStore) Update(scheduledJob *models.ScheduledJob) *models.Error {
-	scheduledJob.PreInsert()
+	scheduledJob.PreUpdate()
 
 	if apperr := scheduledJob.Validate(); apperr != nil {
 		return apperr
 	}
 
-	if err := m.C().Insert(scheduledJob); err != nil {
+	if err := m.C().UpdateId(scheduledJob.ID, scheduledJob); err != nil {
+		log4go.Error(err, scheduledJob.ID)
 		return models.NewError("stores.scheduled_job_store.update.app_err", nil, 500)
 	}
 
