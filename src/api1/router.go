@@ -13,4 +13,6 @@ func Init(srv *services.Srv) {
 
 	api1 := api.NewAPI(srv)
 	apiMux.Handle(pat.Post("/jobs"), api1.Handler(createJob))
+	apiMux.Handle(pat.Get("/jobs/:id"), api1.Handler(getJob))
+	apiMux.Handle(pat.Post("/jobs/:id/disable"), api1.Handler(disableJob))
 }

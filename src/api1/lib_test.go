@@ -3,6 +3,7 @@ package api1
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 
@@ -17,9 +18,9 @@ import (
 )
 
 type TestServer struct {
-	f           func()
-	ExternalSrv *httptest.Server
-	Srv         *services.Srv
+	Srv      *services.Srv
+	external *httptest.Server
+	f        func()
 }
 
 func NewTestServer() *TestServer {
@@ -31,19 +32,23 @@ func NewTestServer() *TestServer {
 	server := &TestServer{
 		Srv: srv,
 	}
-	externalServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if server.f != nil {
-			server.f()
-		}
-		w.WriteHeader(200)
-	}))
-	server.ExternalSrv = externalServer
-	server.DeleteTestData()
+	//server.DeleteTestData()
 	return server
 }
 
-func (s *TestServer) SetExternalJobFunc(f func()) {
+func (s *TestServer) CreateRemoteJob(f func()) string {
 	s.f = f
+
+	if s.external != nil {
+		s.external.Close()
+	}
+
+	s.external = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		f()
+		w.WriteHeader(200)
+	}))
+
+	return s.external.URL
 }
 
 func (s *TestServer) Run() *TestServer {
@@ -54,6 +59,7 @@ func (s *TestServer) Run() *TestServer {
 func (s *TestServer) Stop() {
 	s.Srv.Scheduler.Stop()
 	s.DeleteTestData()
+	s.external.Close()
 }
 
 func (s *TestServer) DeleteTestData() {
@@ -82,4 +88,10 @@ func (c *ClientV1) CreateJob(job models.Job) (models.MapInterface, error) {
 	}
 
 	return c.DoPost("/jobs", &body)
+}
+
+func (c *ClientV1) DisableJob(jobID string) (models.MapInterface, error) {
+
+	endpoint := fmt.Sprintf("/jobs/%s/disable", jobID)
+	return c.DoPost(endpoint, nil)
 }

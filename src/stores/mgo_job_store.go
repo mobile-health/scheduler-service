@@ -47,7 +47,7 @@ func (m *MgoJobStore) Update(job *models.Job) *models.Error {
 	}
 
 	if err := m.C().UpdateId(job.ID, job); err != nil {
-		log4go.Error(err)
+		log4go.Error(err, job.ID)
 		return models.NewError("stores.job.update.app_err", nil, 500)
 	}
 

@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/canhlinh/log4go"
@@ -16,12 +17,14 @@ type PersistentJob struct {
 	*models.Job
 	stores.Store
 	scheduledJob *PersistentScheduledJob
+	mux          *sync.Mutex
 }
 
 func NewPersistentJob(store stores.Store, job *models.Job) *PersistentJob {
 	persistentJob := PersistentJob{
 		Store: store,
 		Job:   job,
+		mux:   &sync.Mutex{},
 	}
 	return &persistentJob
 }
@@ -55,9 +58,34 @@ func (job *PersistentJob) Schedule(now time.Time) error {
 	if apperr := job.Store.Job().Update(job.Job); apperr != nil {
 		log4go.Error(apperr)
 	}
-	job.scheduledJob = NewPersistentScheduledJob(job.Store, job.Job)
+	job.scheduledJob = NewPersistentScheduledJob(job.Store, job)
 
 	log4go.Debug("Job %s scheduled next run at %s", job.ID, job.NextRunAt)
 
 	return nil
+}
+
+func (job *PersistentJob) GetID() string {
+	return job.ID
+}
+
+func (job *PersistentJob) Disable() {
+
+	job.IsDisabled = true
+	job.Save()
+}
+
+func (job *PersistentJob) Finish() {
+
+	job.IsDone = true
+	job.Save()
+}
+
+func (job *PersistentJob) Save() {
+	job.mux.Lock()
+	defer job.mux.Unlock()
+
+	if apperr := job.Store.Job().Update(job.Job); apperr != nil {
+		log4go.Error(apperr)
+	}
 }

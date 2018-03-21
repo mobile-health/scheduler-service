@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/icrowley/fake"
+
 	"github.com/gorhill/cronexpr"
 	"github.com/stretchr/testify/assert"
 )
@@ -43,6 +45,7 @@ func getOneTimeExpr(second int) string {
 }
 
 type JobMock struct {
+	ID           string
 	expr         string
 	scheduledJob *ScheduledJobMock
 	f            func()
@@ -50,10 +53,18 @@ type JobMock struct {
 
 func NewJobMock(expr string, f func()) *JobMock {
 	j := &JobMock{
+		ID:   fake.CharactersN(26),
 		expr: expr,
 		f:    f,
 	}
 	return j
+}
+
+func (mock *JobMock) GetID() string {
+	return mock.ID
+}
+
+func (mock *JobMock) Disable() {
 }
 
 func (mock *JobMock) ScheduledJob() ScheduledJob {

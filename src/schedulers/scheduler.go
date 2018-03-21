@@ -1,6 +1,7 @@
 package schedulers
 
 import (
+	"fmt"
 	"sort"
 	"sync"
 	"time"
@@ -9,18 +10,24 @@ import (
 )
 
 type WorkerPool chan *Worker
+type DisableJob struct {
+	ID      string
+	JobChan chan Job
+	ErrChan chan error
+}
 
 type Scheduler struct {
-	jobs      Jobs
+	jobs      MapJob
 	maxWorker int
 	pool      WorkerPool
 	isRuning  bool
 
-	addJob     JobChannel
-	disableJob JobChannel
-	processJob ScheduledJobChannel
-	stop       StopChannel
-	mutex      *sync.Mutex
+	addJob        JobChannel
+	disableJob    chan *DisableJob
+	processJob    ScheduledJobChannel
+	stopScheduler StopChannel
+	stopProcesser StopChannel
+	mutex         *sync.Mutex
 }
 
 func Now() time.Time {
@@ -37,12 +44,14 @@ func NewScheduler(maxWorker, maxQueue int) *Scheduler {
 	}
 
 	r := &Scheduler{
-		maxWorker:  maxWorker,
-		pool:       make(WorkerPool),
-		addJob:     make(JobChannel, maxQueue),
-		processJob: make(ScheduledJobChannel, maxQueue),
-		stop:       make(StopChannel),
-		mutex:      &sync.Mutex{},
+		maxWorker:     maxWorker,
+		pool:          make(WorkerPool),
+		addJob:        make(JobChannel, maxQueue),
+		processJob:    make(ScheduledJobChannel, maxQueue),
+		disableJob:    make(chan *DisableJob),
+		stopProcesser: make(StopChannel),
+		stopScheduler: make(StopChannel),
+		mutex:         &sync.Mutex{},
 	}
 
 	return r
@@ -60,11 +69,12 @@ func (n *Scheduler) startScheduler() {
 			case job := <-n.processJob:
 				w := <-n.pool
 				w.jobChannel <- job
-			case <-n.stop:
+			case <-n.stopProcesser:
 				for i := 0; i < n.maxWorker; i++ {
 					worker := <-n.pool
 					worker.Stop()
 				}
+				n.stopProcesser <- struct{}{}
 				return
 			}
 		}
@@ -81,8 +91,9 @@ func (n *Scheduler) Stop() {
 	defer n.mutex.Unlock()
 	n.isRuning = false
 
-	n.stop <- struct{}{}
-	n.stop <- struct{}{}
+	n.stopScheduler <- struct{}{}
+	n.stopProcesser <- struct{}{}
+	<-n.stopProcesser // wait processer stop
 }
 
 func (n *Scheduler) IsRuning() bool {
@@ -115,22 +126,22 @@ func (n *Scheduler) run() {
 	}
 
 	for {
-
-		sort.Sort(n.jobs)
+		jobs := n.jobs.Jobs()
+		sort.Sort(jobs)
 
 		var timer *time.Timer
-		if len(n.jobs) == 0 || !n.jobs[0].HasScheduledJob() {
+		if len(jobs) == 0 || !jobs[0].HasScheduledJob() {
 			timer = time.NewTimer(24 * time.Hour)
 		} else {
-			timer = time.NewTimer(n.jobs[0].ScheduledJob().ScheduledAt().Sub(now))
+			timer = time.NewTimer(jobs[0].ScheduledJob().ScheduledAt().Sub(now))
 		}
 
 		for {
 			select {
 			case now = <-timer.C:
 
-				for _, job := range n.jobs {
-					if job.ScheduledJob().ScheduledAt().After(now) || job.ScheduledJob().ScheduledAt().IsZero() {
+				for _, job := range jobs {
+					if job.ScheduledJob().ScheduledAt().After(now) {
 						break
 					}
 
@@ -138,7 +149,10 @@ func (n *Scheduler) run() {
 					scheduledJob.Save()
 					n.processJob <- scheduledJob
 
-					job.Schedule(now)
+					if err := job.Schedule(now); err != nil {
+						delete(n.jobs, job.GetID())
+						job.Finish()
+					}
 				}
 
 			case newjob := <-n.addJob:
@@ -146,10 +160,21 @@ func (n *Scheduler) run() {
 				now = Now()
 
 				if err := newjob.Schedule(now); err == nil {
-					n.jobs = append(n.jobs, newjob)
+					n.jobs[newjob.GetID()] = newjob
 				}
 
-			case <-n.stop:
+			case disableJob := <-n.disableJob:
+
+				if job, exist := n.jobs[disableJob.ID]; exist {
+					delete(n.jobs, job.GetID())
+					job.Disable()
+					log4go.Debug("Send disabled job to channel")
+					disableJob.JobChan <- job
+				} else {
+					disableJob.ErrChan <- fmt.Errorf("Job %s not found", disableJob.ID)
+				}
+
+			case <-n.stopScheduler:
 				return
 			}
 
@@ -159,7 +184,7 @@ func (n *Scheduler) run() {
 }
 
 func (n *Scheduler) PreLoadExistingJob(jobs Jobs) {
-	n.jobs = jobs
+	n.jobs = NewMapJob(jobs)
 }
 
 func (n *Scheduler) ProcessScheduledJob(scheduledJob ScheduledJob) {
@@ -171,7 +196,24 @@ func (n *Scheduler) Add(newjob Job) {
 		n.addJob <- newjob
 	} else {
 		if err := newjob.Schedule(Now()); err == nil {
-			n.jobs = append(n.jobs, newjob)
+			n.jobs[newjob.GetID()] = newjob
 		}
+	}
+}
+
+func (n *Scheduler) DisableJob(jobID string) (Job, error) {
+	log4go.Info("Request disable job %s", jobID)
+
+	var disableJob = DisableJob{
+		ID:      jobID,
+		JobChan: make(JobChannel),
+	}
+	n.disableJob <- &disableJob
+
+	select {
+	case job := <-disableJob.JobChan:
+		return job, nil
+	case err := <-disableJob.ErrChan:
+		return nil, err
 	}
 }
