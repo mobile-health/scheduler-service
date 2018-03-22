@@ -17,3 +17,4 @@ run:
 test:
 	go test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=650s ./src/services
 	go test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=650s ./src/stores
+	go test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=650s ./src/api1

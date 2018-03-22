@@ -39,25 +39,20 @@ func (job *PersistentJob) ScheduledJob() schedulers.ScheduledJob {
 
 func (job *PersistentJob) Schedule(now time.Time) error {
 
-	expr, err := cronexpr.Parse(job.Expression)
-	if err != nil {
-		return err
+	if job.MaxSchedule > 0 && job.JobStats.SuccessCount >= job.MaxSchedule {
+		log4go.Info("The job %s is reached out of the maximum of execution time", job.ID)
+		return fmt.Errorf("The job %s reached out of the maximum of execution time", job.ID)
 	}
 
+	expr := cronexpr.MustParse(job.Expression)
 	next := expr.Next(now)
 	if next.IsZero() {
-		job.Job.IsDone = true
-		if apperr := job.Store.Job().Update(job.Job); apperr != nil {
-			log4go.Error(apperr)
-		}
 		log4go.Warn("The job %s has already been done", job.ID)
 		return fmt.Errorf("The job %s has already been done", job.ID)
 	}
 
 	job.NextRunAt = expr.Next(now)
-	if apperr := job.Store.Job().Update(job.Job); apperr != nil {
-		log4go.Error(apperr)
-	}
+	job.Save()
 	job.scheduledJob = NewPersistentScheduledJob(job.Store, job)
 
 	log4go.Debug("Job %s scheduled next run at %s", job.ID, job.NextRunAt)

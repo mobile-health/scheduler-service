@@ -11,22 +11,22 @@ import (
 
 // Job present a job
 type Job struct {
-	ID            string     `json:"id" bson:"_id"`
-	FuID          string     `json:"fu_id" bson:"fu_id"`
-	CreatedAt     time.Time  `json:"created_at" bson:"created_at"`
-	UpdatedAt     time.Time  `json:"updated_at" bson:"updated_at"`
-	Name          string     `json:"name" bson:"name"`
-	Expression    string     `json:"expression" bson:"expression"`
-	IsDone        bool       `json:"is_done" bson:"is_done"`
-	NextRunAt     time.Time  `json:"next_run_at" bson:"next_run_at"`
-	IsDisabled    bool       `json:"is_disabled" bson:"id_disabled"`
-	IsAsync       bool       `json:"is_async" bson:"is_async"`
-	Description   string     `json:"description" bson:"description"`
-	MaxRetries    uint       `json:"max_retries" bson:"max_retries"`
-	MaxExecutions uint       `json:"max_executions" bson:"max_executions"`
-	Tags          []string   `json:"tags" bson:"tags"`
-	JobStats      JobStats   `json:"job_stats" bson:"job_stats"`
-	Args          RemoteArgs `json:"args" bson:"args"`
+	ID          string     `json:"id" bson:"_id"`
+	FuID        string     `json:"fu_id" bson:"fu_id"`
+	CreatedAt   time.Time  `json:"created_at" bson:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at" bson:"updated_at"`
+	Name        string     `json:"name" bson:"name"`
+	Expression  string     `json:"expression" bson:"expression"`
+	IsDone      bool       `json:"is_done" bson:"is_done"`
+	NextRunAt   time.Time  `json:"next_run_at" bson:"next_run_at"`
+	IsDisabled  bool       `json:"is_disabled" bson:"id_disabled"`
+	IsAsync     bool       `json:"is_async" bson:"is_async"`
+	Description string     `json:"description" bson:"description"`
+	MaxRetries  uint       `json:"max_retries" bson:"max_retries"`
+	MaxSchedule uint       `json:"max_schedule" bson:"max_schedule"`
+	Tags        []string   `json:"tags" bson:"tags"`
+	JobStats    JobStats   `json:"job_stats" bson:"job_stats"`
+	Args        RemoteArgs `json:"args" bson:"args"`
 }
 
 type Jobs []*Job
