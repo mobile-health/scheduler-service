@@ -41,8 +41,11 @@ func (job *Job) PreInsert() *Job {
 	job.Name = strings.TrimSpace(job.Name)
 	job.FuID = strings.TrimSpace(job.FuID)
 	job.Expression = strings.TrimSpace(job.Expression)
-	if len(job.FuID) > 0 {
+	if len(job.FuID) == 0 {
 		job.FuID = "fu_" + NewID()
+	}
+	if job.Tags == nil {
+		job.Tags = []string{}
 	}
 
 	return job

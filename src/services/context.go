@@ -17,13 +17,11 @@ type RenderFunc func(httpCode int, value interface{}) error
 type HandlerFunc func(c *Context) utils.Render
 
 type Context struct {
-	Srv          *Srv
-	Request      *http.Request
-	Writer       http.ResponseWriter
-	RequestID    string
-	UserID       *string
-	ResponseCode int
-	ResponseData interface{}
+	Srv       *Srv
+	Request   *http.Request
+	Writer    http.ResponseWriter
+	RequestID string
+	UserID    *string
 }
 
 func NewContext(w http.ResponseWriter, r *http.Request, srv *Srv) *Context {
@@ -36,6 +34,7 @@ func NewContext(w http.ResponseWriter, r *http.Request, srv *Srv) *Context {
 }
 
 func (c *Context) JSON(statusCode int, value interface{}) utils.Render {
+
 	return utils.NewJsonRender(c.Writer, statusCode, value)
 }
 

@@ -33,8 +33,6 @@ func TestContextJSON(t *testing.T) {
 	}
 	renderFunc := c.JSON(200, data)
 	assert.NotNil(t, renderFunc, "renderFunc can not be null")
-	assert.Equal(t, 200, c.ResponseCode)
-	assert.Equal(t, data, c.ResponseData)
 }
 
 func TestContextError(t *testing.T) {
@@ -45,6 +43,4 @@ func TestContextError(t *testing.T) {
 	apperr := models.NewErrorUnexpected(errors.New(""), 400)
 	renderFunc := c.Error(apperr)
 	assert.NotNil(t, renderFunc, "renderFunc can not be null")
-	assert.Equal(t, apperr.StatusCode, c.ResponseCode)
-	assert.Equal(t, apperr, c.ResponseData)
 }
