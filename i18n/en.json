@@ -56,6 +56,14 @@
         "translation": "The scheduled job does not exist"
     },
     {
+        "id": "stores.preference.save.app_err",
+        "translation":"Failed to save the preference"
+    },
+    {
+        "id": "stores.preference.get.app_err",
+        "translation":"The preference does not exist"
+    },
+    {
         "id": "services.scheduler.disable.app_err",
         "translation": "Can not disable the job, got error : {{ .Message }}"
     }
