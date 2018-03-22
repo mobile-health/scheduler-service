@@ -16,6 +16,7 @@ const (
 	Database               = "scheduler"
 	JobCollection          = "jobs"
 	JobScheduledCollection = "scheduled_jobs"
+	PreferenceCollection   = "preferences"
 )
 
 func NewMgoSession() (*mgo.Session, error) {
@@ -48,6 +49,7 @@ type MgoStore struct {
 	db           *mgo.Session
 	job          JobStore
 	scheduledJob ScheduledJobStore
+	preference   PreferenceStore
 }
 
 func NewStore() Store {
@@ -60,8 +62,12 @@ func NewStore() Store {
 		db: mgoSession,
 	}
 
+	m.preference = NewMgoPreferenceStore(m)
+	m.Upgrade()
+
 	m.job = NewMgoJobStore(m)
 	m.scheduledJob = NewMgoScheduledJobStore(m)
+
 	return m
 }
 
@@ -71,4 +77,8 @@ func (m *MgoStore) Job() JobStore {
 
 func (m *MgoStore) ScheduledJob() ScheduledJobStore {
 	return m.scheduledJob
+}
+
+func (m *MgoStore) Preference() PreferenceStore {
+	return m.preference
 }

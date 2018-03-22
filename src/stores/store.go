@@ -8,6 +8,7 @@ import (
 type Store interface {
 	Job() JobStore
 	ScheduledJob() ScheduledJobStore
+	Preference() PreferenceStore
 }
 
 type JobStore interface {
@@ -26,4 +27,10 @@ type ScheduledJobStore interface {
 	Get(scheduledJobID string) (*models.ScheduledJob, *models.Error)
 	FindByJobID(jobID string) (models.ScheduledJobs, *models.Error)
 	FindProcessing() (models.ScheduledJobs, *models.Error)
+}
+
+type PreferenceStore interface {
+	C() *mgo.Collection
+	Save(preference *models.Preference) *models.Error
+	Get(name string) (*models.Preference, *models.Error)
 }
