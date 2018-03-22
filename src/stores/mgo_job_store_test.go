@@ -10,7 +10,7 @@ import (
 
 func TestJobInsert(t *testing.T) {
 	job := models.Job{
-		Name:       fake.Brand(),
+		Name:       "test_" + fake.Brand(),
 		Expression: "0 0 29 2 *",
 		Args: models.RemoteArgs{
 			URL:    "https://api.coinmarketcap.com/v1/ticker/",
@@ -30,7 +30,7 @@ func TestJobInsert(t *testing.T) {
 func TestJobUpdate(t *testing.T) {
 
 	job := models.Job{
-		Name:       fake.Brand(),
+		Name:       "test_" + fake.Brand(),
 		Expression: "0 0 29 2 *",
 		Args: models.RemoteArgs{
 			URL:    "https://api.coinmarketcap.com/v1/ticker/",
@@ -50,7 +50,7 @@ func TestJobUpdate(t *testing.T) {
 
 func TestJobGet(t *testing.T) {
 	job := models.Job{
-		Name:       fake.Brand(),
+		Name:       "test_" + fake.Brand(),
 		Expression: "0 0 29 2 *",
 		Args: models.RemoteArgs{
 			URL:    "https://api.coinmarketcap.com/v1/ticker/",
@@ -71,7 +71,7 @@ func TestJobGet(t *testing.T) {
 
 func TestJobFindNotDoneYet(t *testing.T) {
 	job1 := models.Job{
-		Name:       fake.Brand(),
+		Name:       "test_" + fake.Brand(),
 		Expression: "0 0 29 2 *",
 		IsDone:     false,
 		Args: models.RemoteArgs{
