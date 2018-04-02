@@ -29,7 +29,11 @@ type Config struct {
 	Auth     AuthSettings     `yaml:"auth_settings"`
 }
 
-var defaultConfig *Config
+var (
+	defaultConfig *Config
+	BuildCommit   string
+	BuildDate     string
+)
 
 func Load(yamlPath string) {
 	configFile, err := os.Open(yamlPath)
