@@ -1,0 +1,9 @@
+server_settings:
+  listen_address: 0.0.0.0:8080
+auth_settings:
+  api_token: SskGIEAFhk
+  api_login: qKBHtPzXLT
+database_settings:
+  mgo_dsn: <%=env_mongo_host%> 
+  retries: 60
+  connect_timeout: 3
