@@ -52,6 +52,7 @@ func NewScheduler(maxWorker, maxQueue int) *Scheduler {
 		stopProcesser: make(StopChannel),
 		stopScheduler: make(StopChannel),
 		mutex:         &sync.Mutex{},
+		jobs:          MapJob{},
 	}
 
 	return r
@@ -82,6 +83,7 @@ func (n *Scheduler) startScheduler() {
 }
 
 func (n *Scheduler) Stop() {
+	log4go.Info("Stop scheduler")
 
 	if !n.IsRuning() {
 		return
