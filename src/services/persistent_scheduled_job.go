@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -84,6 +85,10 @@ func (scheduledJob *PersistentScheduledJob) Run() error {
 	now := schedulers.Now()
 
 	req, err := http.NewRequest(scheduledJob.ParentJob.Args.Method, scheduledJob.ParentJob.Args.URL, strings.NewReader(scheduledJob.ParentJob.Args.Body))
+	req.Header.Add("job_id", fmt.Sprintf("%v", scheduledJob.JobID))
+	req.Header.Add("scheduled_job_id", fmt.Sprintf("%v", scheduledJob.ID))
+	req.Header.Add("fu_id", fmt.Sprintf("%v", scheduledJob.ParentJob.FuID))
+
 	if err != nil {
 		if !scheduledJob.ParentJob.IsAsync {
 			scheduledJob.onFailed(err, schedulers.Now().Sub(now).Seconds())
