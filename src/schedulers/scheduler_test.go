@@ -67,6 +67,12 @@ func (mock *JobMock) GetID() string {
 func (mock *JobMock) Disable() {
 }
 
+func (mock *JobMock) Finish() {
+}
+
+func (mock *JobMock) Save() {
+}
+
 func (mock *JobMock) ScheduledJob() ScheduledJob {
 	return mock.scheduledJob
 }
