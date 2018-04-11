@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 
+	"goji.io/pat"
+
 	"goji.io"
 
 	"github.com/mobile-health/scheduler-service/src/api"
@@ -18,9 +20,9 @@ import (
 )
 
 type TestServer struct {
-	Srv      *services.Srv
-	external *httptest.Server
-	f        func()
+	Srv           *services.Srv
+	fakeServer    *httptest.Server
+	fakeServerMux *goji.Mux
 }
 
 func NewTestServer() *TestServer {
@@ -29,26 +31,27 @@ func NewTestServer() *TestServer {
 
 	srv := services.NewServer(goji.NewMux(), stores.NewStore())
 	Init(srv)
+
+	fakeServerMux := goji.NewMux()
+	fakeServer := httptest.NewServer(fakeServerMux)
+
 	server := &TestServer{
-		Srv: srv,
+		Srv:           srv,
+		fakeServer:    fakeServer,
+		fakeServerMux: fakeServerMux,
 	}
-	//server.DeleteTestData()
 	return server
 }
 
-func (s *TestServer) CreateRemoteJob(f func()) string {
-	s.f = f
+func (s *TestServer) JobHandler(f func()) string {
 
-	if s.external != nil {
-		s.external.Close()
-	}
-
-	s.external = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	endpoint := "/" + models.NewID()
+	s.fakeServerMux.HandleFunc(pat.Get(endpoint), func(w http.ResponseWriter, r *http.Request) {
 		f()
 		w.WriteHeader(200)
-	}))
+	})
 
-	return s.external.URL
+	return s.fakeServer.URL + endpoint
 }
 
 func (s *TestServer) Run() *TestServer {
@@ -59,7 +62,7 @@ func (s *TestServer) Run() *TestServer {
 func (s *TestServer) Stop() {
 	s.Srv.Scheduler.Stop()
 	s.DeleteTestData()
-	s.external.Close()
+	s.fakeServer.Close()
 }
 
 func (s *TestServer) DeleteTestData() {

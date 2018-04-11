@@ -52,7 +52,7 @@ func (scheduledJob *PersistentScheduledJob) onProcessing() {
 }
 
 func (scheduledJob *PersistentScheduledJob) onFailed(err error, duration float64) {
-	log4go.Info("The scheduled job %s failed", scheduledJob.ID)
+	log4go.Error("The scheduled job %s failed, got error %s", scheduledJob.ID, err)
 
 	scheduledJob.Status = models.JobFailed
 	scheduledJob.Error = err.Error()
@@ -104,7 +104,7 @@ func (scheduledJob *PersistentScheduledJob) Run() error {
 		return err
 	}
 
-	if res.StatusCode <= 299 {
+	if res.StatusCode > 299 {
 		err = errors.New(res.Status)
 		if !scheduledJob.ParentJob.IsAsync {
 			scheduledJob.onFailed(err, schedulers.Now().Sub(now).Seconds())
