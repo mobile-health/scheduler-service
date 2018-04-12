@@ -3,7 +3,7 @@ def buildName = "${env.BRANCH_NAME.replaceAll('[^a-zA-Z0-9]+','-').toLowerCase()
 def githubRepo = "mobile-health/scheduler-service"
 def projectName = "scheduler"
 def projectKey = "beschedule"
-def imageParameter = "z"
+def imageParameter = "q"
 
 node('docker') {
   stage ('Stage Checkout') {
