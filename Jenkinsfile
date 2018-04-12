@@ -1,9 +1,9 @@
 def ignore_branches = ["master", "develop"]
 def buildName = "${env.BRANCH_NAME.replaceAll('[^a-zA-Z0-9]+','-').toLowerCase()}"
 def githubRepo = "mobile-health/scheduler-service"
-def projectName = "scheduler-service"
-def projectKey = "scheduler-service"
-def imageParameter = "f"
+def projectName = "scheduler"
+def projectKey = "beschedule"
+def imageParameter = "z"
 
 node('docker') {
   stage ('Stage Checkout') {
