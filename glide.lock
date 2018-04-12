@@ -1,14 +1,18 @@
-hash: 9c6447fedac4610f47a15dc3e857789f6cb509395554873de3bc367973dfac43
-updated: 2018-03-13T17:31:14.88766+07:00
+hash: 706c09bb6fb939b934676519f77451c402015d8c9c7888d0e801d10123dfd62e
+updated: 2018-04-10T15:37:34.332223+07:00
 imports:
 - name: github.com/canhlinh/log4go
-  version: 4c81e883afb3b787e8462b4d64021f0fc3ef27ee
-- name: github.com/corpix/uarand
-  version: bec9f4e76616d890ce207e1898e5998764435494
+  version: 9498c89be05000b3bcf98fec701e6a6b0abc641c
+- name: github.com/certifi/gocertifi
+  version: deb3ae2ef2610fde3330947281941c562861188b
 - name: github.com/fvbock/endless
   version: 447134032cb6a86814f570257390a379982dfc61
+- name: github.com/getsentry/raven-go
+  version: d1470f50d3a3a38533355a9fab7393e25a3b4226
+- name: github.com/gin-contrib/sse
+  version: 22d885f9ecc78bf4ee5d72b937e4bbcdc58e8cae
 - name: github.com/gin-gonic/gin
-  version: e2212d40c62a98b388a5eb48ecbdcf88534688ba
+  version: d459835d2b077e44f7c9b453505ee29881d5d12d
   subpackages:
   - binding
   - render
@@ -18,29 +22,31 @@ imports:
   - proto
 - name: github.com/gorhill/cronexpr
   version: a557574d6c024ed6e36acc8b610f5f211c91568a
-- name: github.com/icrowley/fake
-  version: 9ebaa17f46192cb20228d501435ff944717ef907
-- name: github.com/manucorporat/sse
-  version: ee05b128a739a0fb76c7ebd3ae4810c1de808d6d
 - name: github.com/mattn/go-isatty
-  version: 56b76bdf51f7708750eac80fa38b952bb9f32639
+  version: 6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c
 - name: github.com/nicksnyder/go-i18n
-  version: fed5740db6b83ee8ba7c1b07ff063115bc6f4b96
+  version: 0dc1626d56435e9d605a29875701721c54bc9bbd
   subpackages:
   - i18n
   - i18n/bundle
   - i18n/language
   - i18n/translation
 - name: github.com/oklog/ulid
-  version: b38f8fcd3b93fd0e63dae168550d51a485185d60
+  version: d311cb43c92434ec4072dfbbda3400741d0a6337
 - name: github.com/pelletier/go-buffruneio
   version: c37440a7cf42ac63b919c752ca73a85067e05992
 - name: github.com/pelletier/go-toml
   version: 97253b98df84f9eef872866d079e74b8265150f1
 - name: github.com/peterbourgon/g2s
   version: ec76db4c1ac16400ac0e17ca9c4840e1d23da5dc
+- name: github.com/pkg/errors
+  version: 816c9085562cd7ee03e7f8188a1cfd942858cded
 - name: github.com/Sirupsen/logrus
-  version: f006c2ac4710855cf0f916dd6b77acf6b048dc6e
+  version: c155da19408a8799da419ed3eeb0cb5db0ad5dbc
+- name: github.com/ugorji/go
+  version: f3cacc17c85ecb7f1b6a9e373ee85d1480919868
+  subpackages:
+  - codec
 - name: goji.io
   version: 0d89ff54b2c18c9c4ba530e32496aef902d3c6cd
   subpackages:
@@ -48,15 +54,11 @@ imports:
   - pat
   - pattern
 - name: golang.org/x/crypto
-  version: 7d9177d70076375b9a59c8fde23d52d9c4a7ecd5
+  version: 12892e8c234f4fe6f6803f052061de9057903bb2
   subpackages:
   - ssh/terminal
-- name: golang.org/x/net
-  version: f315505cf3349909cdf013ea56690da34e96a451
-  subpackages:
-  - context
 - name: golang.org/x/sys
-  version: a646d33e2ee3172a661fc09bca23bb4889a41bc8
+  version: 37707fdb30a5b38865cfb95e5aab41707daec7fd
   subpackages:
   - unix
   - windows
@@ -70,17 +72,21 @@ imports:
   - internal/sasl
   - internal/scram
 - name: gopkg.in/yaml.v2
-  version: a3f3340b5840cee44f372bddb5880fcbc419b46a
+  version: 5420a8b6744d3b0345ab293f6fcba19c978f1183
 testImports:
+- name: github.com/corpix/uarand
+  version: bec9f4e76616d890ce207e1898e5998764435494
 - name: github.com/davecgh/go-spew
-  version: 5215b55f46b2b919f50a1df0eaa5886afe4e3b3d
+  version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9
   subpackages:
   - spew
+- name: github.com/icrowley/fake
+  version: 9ebaa17f46192cb20228d501435ff944717ef907
 - name: github.com/pmezard/go-difflib
-  version: 792786c7400a136282c1664665ae0a8db921c6c2
+  version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
   subpackages:
   - difflib
 - name: github.com/stretchr/testify
-  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
+  version: 12b6f73e6084dad08a7c6e575284b177ecafbc71
   subpackages:
   - assert
