@@ -1,0 +1,39 @@
+def ignore_branches = ["master", "develop"]
+def buildName = "${env.BRANCH_NAME.replaceAll('[^a-zA-Z0-9]+','-').toLowerCase()}"
+def buildNumber = "${env.BUILD_NUMBER}"
+def githubRepo = "mobile-health/scheduler-service"
+def projectName = "scheduler"
+def projectKey = "beschedule"
+def imageParameter = "q"
+
+node('docker') {
+  stage ('Stage Checkout') {
+    // Checkout code from repository and update any submodules
+    checkout scm
+    sh 'git submodule update --init'
+  }
+
+  stage ('Stage Build') {
+    //branch name from Jenkins environment variables
+    echo "Build branch: ${env.BRANCH_NAME}"
+    echo "Build docker image registry.manadrdev.com/${projectName}:${buildName}-${buildNumber}"
+    echo "Docker path ${env.DOCKER_PATH}"
+    sh "${env.DOCKER_PATH} build -t registry.manadrdev.com/${projectName}:${buildName}-${buildNumber} ."
+  }
+
+  stage ('Stage Push') {
+    echo "Push image to registry"
+    sh "${env.DOCKER_PATH} push registry.manadrdev.com/${projectName}:${buildName}-${buildNumber}"
+  }
+}
+
+node('kubectl') {
+  stage ('Stage Run') {
+    if(ignore_branches.contains(env.BRANCH_NAME)) {
+        echo "Skip run MaNaDr bundle for branch ${env.BRANCH_NAME}" 
+    } else {
+      echo "Run all application container"
+      sh "curl -u ${MANADR_USER}:${MANADR_PASSWORD} https://scripts.k8s.manadrdev.com/k8s-bundle-run | bash -s -- -p ${projectKey}-${buildName} -${imageParameter} registry.manadrdev.com/${projectName}:${buildName}-${buildNumber}"
+    }
+  }
+}
