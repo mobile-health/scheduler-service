@@ -16,14 +16,24 @@ node('docker') {
   stage ('Stage Build') {
     //branch name from Jenkins environment variables
     echo "Build branch: ${env.BRANCH_NAME}"
-    echo "Build docker image registry.manadrdev.com/${projectName}:${buildName}-${buildNumber}"
-    echo "Docker path ${env.DOCKER_PATH}"
-    sh "${env.DOCKER_PATH} build -t registry.manadrdev.com/${projectName}:${buildName}-${buildNumber} ."
+    if(ignore_branches.contains(env.BRANCH_NAME)) {
+        echo "Build docker image registry.manadrdev.com/${projectName}:${buildName}"
+        echo "Docker path ${env.DOCKER_PATH}"
+        sh "${env.DOCKER_PATH} build -t registry.manadrdev.com/${projectName}:${buildName} ."
+    } else {
+        echo "Build docker image registry.manadrdev.com/${projectName}:${buildName}-${buildNumber}"
+        echo "Docker path ${env.DOCKER_PATH}"
+        sh "${env.DOCKER_PATH} build -t registry.manadrdev.com/${projectName}:${buildName}-${buildNumber} ."
+    }
   }
 
   stage ('Stage Push') {
     echo "Push image to registry"
-    sh "${env.DOCKER_PATH} push registry.manadrdev.com/${projectName}:${buildName}-${buildNumber}"
+    if(ignore_branches.contains(env.BRANCH_NAME)) {
+        sh "${env.DOCKER_PATH} push registry.manadrdev.com/${projectName}:${buildName}"
+    } else {
+        sh "${env.DOCKER_PATH} push registry.manadrdev.com/${projectName}:${buildName}-${buildNumber}"
+    }
   }
 }
 
