@@ -40,7 +40,15 @@ node('docker') {
 node('kubectl') {
   stage ('Stage Run') {
     if(ignore_branches.contains(env.BRANCH_NAME)) {
-        echo "Skip run MaNaDr bundle for branch ${env.BRANCH_NAME}" 
+        def namespace = "default"
+        if(env.BRANCH_NAME=="develop"){
+          namespace="manadr-dev"
+        }
+        if(env.BRANCH_NAME=="master") {
+          namespace="manadr-staging"
+        }
+        echo "Deploy ${projectName} service on namespace ${namespace}"
+        sh "curl -u ${MANADR_USER}:${MANADR_PASSWORD} https://scripts.k8s.manadrdev.com/k8s-deployment | bash -s ${projectName} ${namespace}"
     } else {
       echo "Run all application container"
       sh "curl -u ${MANADR_USER}:${MANADR_PASSWORD} https://scripts.k8s.manadrdev.com/k8s-bundle-run | bash -s -- -p ${projectKey}-${buildName} -${imageParameter} registry.manadrdev.com/${projectName}:${buildName}-${buildNumber}"
